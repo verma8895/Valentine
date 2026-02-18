@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Be My Valentine ❤️</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    overflow: hidden;
+  }
+
+  .card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    position: relative;
+  }
+
+  h1 {
+    margin-bottom: 10px;
+    color: #e91e63;
+  }
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #ff4081;
+    font-weight: normal;
+  }
+
+  .btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  #yesBtn {
+    background: #4CAF50;
+    color: white;
+    margin-right: 20px;
+  }
+
+  /* No button starts normally next to Yes */
+  #noBtn {
+    background: #f44336;
+    color: white;
+  }
+
+  .celebration {
+    display: none;
+    font-size: 30px;
+    color: #e91e63;
+    font-weight: bold;
+    text-align: center;
+    max-width: 520px;
+  }
+
+  .celebration small {
+    display: block;
+    font-size: 20px;
+    margin-top: 10px;
+    color: #ff4081;
+  }
+
+  .memeGif {
+    margin-top: 20px;
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+    max-width: 100%;
+  }
+
+  .confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: red;
+    top: -10px;
+    animation: fall linear forwards;
+  }
+
+  @keyframes fall {
+    to {
+      transform: translateY(110vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Romantic music (start on Yes click) -->
+<audio id="music" loop>
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=romantic-love-11786.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Teasing celebration music -->
+<audio id="teaseMusic">
+  <source src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_946f2a6c1a.mp3?filename=success-fanfare-trumpets-6185.mp3" type="audio/mpeg">
+</audio>
+
+<div class="card" id="card">
+  <h1>Hey Christine, my Mei Chang ❤️</h1>
+  <h2>Will you be my Valentine?</h2>
+  <button class="btn" id="yesBtn">Yes 💚</button>
+  <button class="btn" id="noBtn">No ❌</button>
+</div>
+
+<div class="celebration" id="celebration">
+  🎉 Best decision ever made 🎉
+  <small>You just made my day, Christine 💖</small>
+  <img class="memeGif" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcnhsb3VtZWc1bHlsanM2MG03NmpveGJoMWhpcXB1eXQxbDBwMXlwcSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0MYt5jPR6QX5pnqM/giphy.gif" alt="celebration meme">
+</div>
+
+<script>
+const noBtn = document.getElementById("noBtn");
+const yesBtn = document.getElementById("yesBtn");
+const card = document.getElementById("card");
+const celebration = document.getElementById("celebration");
+const music = document.getElementById("music");
+const teaseMusic = document.getElementById("teaseMusic");
+
+let escapeActivated = false;
+let noX = 0;
+let noY = 0;
+
+window.addEventListener("mousemove", (e) => {
+  const rect = noBtn.getBoundingClientRect();
+  const btnCenterX = rect.left + rect.width / 2;
+  const btnCenterY = rect.top + rect.height / 2;
+
+  const dx = btnCenterX - e.clientX;
+  const dy = btnCenterY - e.clientY;
+  const distance = Math.sqrt(dx*dx + dy*dy);
+
+  // First time cursor comes close — switch to escape mode
+  if (!escapeActivated && distance < 140) {
+    escapeActivated = true;
+    noBtn.style.position = "fixed";
+    noX = rect.left;
+    noY = rect.top;
+  }
+
+  if (escapeActivated && distance < 140) {
+    const move = 120 / (distance || 1);
+    noX += dx * move;
+    noY += dy * move;
+
+    const maxX = window.innerWidth - rect.width - 10;
+    const maxY = window.innerHeight - rect.height - 10;
+
+    noX = Math.max(10, Math.min(maxX, noX));
+    noY = Math.max(10, Math.min(maxY, noY));
+
+    noBtn.style.left = noX + "px";
+    noBtn.style.top = noY + "px";
+  }
+});
+
+// YES click
+
+yesBtn.addEventListener("click", () => {
+  card.style.display = "none";
+  celebration.style.display = "block";
+  startConfetti();
+  music.play().catch(()=>{});
+  teaseMusic.play().catch(()=>{});
+});
+
+function startConfetti() {
+  for (let i = 0; i < 160; i++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = `hsl(${Math.random()*360},100%,50%)`;
+    c.style.animationDuration = (Math.random() * 3 + 2) + "s";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+</script>
+
+</body>
+</html>
