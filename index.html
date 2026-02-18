@@ -146,47 +146,56 @@ function handlePointer(px, py) {
   const dy = btnCenterY - py;
   const distance = Math.sqrt(dx*dx + dy*dy);
 
-  // activate escape on first close approach
-  if (!escapeActivated && distance < 140) {
+  // Only react when pointer is near NO button area
+  if (distance > 180) return;
+
+  // activate escape only when first time near
+  if (!escapeActivated) {
     escapeActivated = true;
     noBtn.style.position = "fixed";
     noX = rect.left;
     noY = rect.top;
   }
 
-  if (escapeActivated && distance < 140) {
-    const move = 120 / (distance || 1);
-    noX += dx * move;
-    noY += dy * move;
+  const move = 140 / (distance || 1);
+  noX += dx * move;
+  noY += dy * move;
 
-    const maxX = window.innerWidth - rect.width - 10;
-    const maxY = window.innerHeight - rect.height - 10;
+  const maxX = window.innerWidth - rect.width - 10;
+  const maxY = window.innerHeight - rect.height - 10;
 
-    noX = Math.max(10, Math.min(maxX, noX));
-    noY = Math.max(10, Math.min(maxY, noY));
+  noX = Math.max(10, Math.min(maxX, noX));
+  noY = Math.max(10, Math.min(maxY, noY));
 
-    noBtn.style.left = noX + "px";
-    noBtn.style.top = noY + "px";
-  }
+  noBtn.style.left = noX + "px";
+  noBtn.style.top = noY + "px";
 }
 
-// Desktop mouse support
+// Desktop mouse support — does NOT affect YES button
 window.addEventListener("mousemove", (e) => {
+  if (e.target === yesBtn) return;
   handlePointer(e.clientX, e.clientY);
 });
 
-// Mobile touch support
-window.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  if (t) handlePointer(t.clientX, t.clientY);
-}, {passive:true});
-
+// Mobile touch support — track finger move only, no auto click
 window.addEventListener("touchmove", (e) => {
   const t = e.touches[0];
-  if (t) handlePointer(t.clientX, t.clientY);
+  if (!t) return;
+  if (e.target === yesBtn) return;
+  handlePointer(t.clientX, t.clientY);
 }, {passive:true});
 
-// YES click
+// Prevent NO button from being actually clickable on mobile
+noBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+});
+noBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+});
+
+// YES click — only this triggers celebration
 
 yesBtn.addEventListener("click", () => {
   card.style.display = "none";
