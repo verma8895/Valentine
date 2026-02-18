@@ -47,6 +47,18 @@
     position: relative;
   }
 
+  .shake {
+    animation: shake 0.35s linear;
+  }
+
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-4px); }
+    100% { transform: translateX(0); }
+  }
+
   #yesBtn {
     background: #4CAF50;
     color: white;
@@ -148,18 +160,21 @@ function handlePointer(px, py) {
   const dy = btnCenterY - py;
   const distance = Math.sqrt(dx*dx + dy*dy);
 
-  // Only react when pointer is near NO button area
-  if (distance > 180) return;
+  // only react when near NO button — add playful shake when very close
+  if (distance > 160) return;
 
-  // activate escape only when first time near
   if (!escapeActivated) {
     escapeActivated = true;
     noBtn.style.position = "fixed";
     noX = rect.left;
     noY = rect.top;
+
+    // playful almost-caught shake
+    noBtn.classList.add("shake");
+    setTimeout(()=> noBtn.classList.remove("shake"), 400);
   }
 
-  const move = 140 / (distance || 1);
+  const move = 160 / (distance || 1);
   let nextX = noX + dx * move;
   let nextY = noY + dy * move;
 
@@ -169,7 +184,7 @@ function handlePointer(px, py) {
   nextX = Math.max(10, Math.min(maxX, nextX));
   nextY = Math.max(10, Math.min(maxY, nextY));
 
-  // 🚫 Prevent NO button from overlapping YES button
+  // prevent overlap with YES button
   const overlap = !(
     nextX + rect.width < yesRect.left - 8 ||
     nextX > yesRect.right + 8 ||
@@ -181,11 +196,11 @@ function handlePointer(px, py) {
     noX = nextX;
     noY = nextY;
   } else {
-    // push it away vertically if overlap would happen
+    // push away vertically
     if (btnCenterY < yesRect.top) {
-      noY = yesRect.top - rect.height - 12;
+      noY = yesRect.top - rect.height - 14;
     } else {
-      noY = yesRect.bottom + 12;
+      noY = yesRect.bottom + 14;
     }
   }
 
@@ -193,33 +208,43 @@ function handlePointer(px, py) {
   noBtn.style.top = noY + "px";
 }
 
-// Desktop mouse support — does NOT affect YES button
+// -------- Desktop mouse --------
 window.addEventListener("mousemove", (e) => {
   if (e.target === yesBtn) return;
   handlePointer(e.clientX, e.clientY);
 });
 
-// Mobile touch support — track finger move only, no auto click
-window.addEventListener("touchmove", (e) => {
+// -------- Mobile touch (KEY FIX) --------
+// trigger on touchstart AND touchmove so first tap near NO moves it
+function handleTouch(e) {
   const t = e.touches[0];
   if (!t) return;
-  if (e.target === yesBtn) return;
-  handlePointer(t.clientX, t.clientY);
-}, {passive:true});
 
-// Prevent NO button from being actually clickable on mobile
+  // if touching YES, allow normal click
+  if (e.target === yesBtn) return;
+
+  handlePointer(t.clientX, t.clientY);
+}
+
+window.addEventListener("touchstart", handleTouch, {passive:true});
+window.addEventListener("touchmove", handleTouch, {passive:true});
+
+// make NO impossible to click
 noBtn.addEventListener("touchstart", (e) => {
   e.preventDefault();
   e.stopPropagation();
+  const t = e.touches[0];
+  if (t) handlePointer(t.clientX, t.clientY);
 });
+
 noBtn.addEventListener("click", (e) => {
   e.preventDefault();
   e.stopPropagation();
 });
 
-// YES click — only this triggers celebration
-
-yesBtn.addEventListener("click", () => {
+// -------- YES click = only success path --------
+yesBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
   card.style.display = "none";
   celebration.style.display = "block";
   startConfetti();
