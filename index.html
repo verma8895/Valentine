@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Be My Valentine ❤️</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
     margin: 0;
@@ -60,16 +61,17 @@
 
   .celebration {
     display: none;
-    font-size: 30px;
+    font-size: 28px;
     color: #e91e63;
     font-weight: bold;
     text-align: center;
     max-width: 520px;
+    padding: 20px;
   }
 
   .celebration small {
     display: block;
-    font-size: 20px;
+    font-size: 18px;
     margin-top: 10px;
     color: #ff4081;
   }
@@ -135,16 +137,16 @@ let escapeActivated = false;
 let noX = 0;
 let noY = 0;
 
-window.addEventListener("mousemove", (e) => {
+function handlePointer(px, py) {
   const rect = noBtn.getBoundingClientRect();
   const btnCenterX = rect.left + rect.width / 2;
   const btnCenterY = rect.top + rect.height / 2;
 
-  const dx = btnCenterX - e.clientX;
-  const dy = btnCenterY - e.clientY;
+  const dx = btnCenterX - px;
+  const dy = btnCenterY - py;
   const distance = Math.sqrt(dx*dx + dy*dy);
 
-  // First time cursor comes close — switch to escape mode
+  // activate escape on first close approach
   if (!escapeActivated && distance < 140) {
     escapeActivated = true;
     noBtn.style.position = "fixed";
@@ -166,7 +168,23 @@ window.addEventListener("mousemove", (e) => {
     noBtn.style.left = noX + "px";
     noBtn.style.top = noY + "px";
   }
+}
+
+// Desktop mouse support
+window.addEventListener("mousemove", (e) => {
+  handlePointer(e.clientX, e.clientY);
 });
+
+// Mobile touch support
+window.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  if (t) handlePointer(t.clientX, t.clientY);
+}, {passive:true});
+
+window.addEventListener("touchmove", (e) => {
+  const t = e.touches[0];
+  if (t) handlePointer(t.clientX, t.clientY);
+}, {passive:true});
 
 // YES click
 
