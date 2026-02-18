@@ -139,6 +139,8 @@ let noY = 0;
 
 function handlePointer(px, py) {
   const rect = noBtn.getBoundingClientRect();
+  const yesRect = yesBtn.getBoundingClientRect();
+
   const btnCenterX = rect.left + rect.width / 2;
   const btnCenterY = rect.top + rect.height / 2;
 
@@ -158,14 +160,34 @@ function handlePointer(px, py) {
   }
 
   const move = 140 / (distance || 1);
-  noX += dx * move;
-  noY += dy * move;
+  let nextX = noX + dx * move;
+  let nextY = noY + dy * move;
 
   const maxX = window.innerWidth - rect.width - 10;
   const maxY = window.innerHeight - rect.height - 10;
 
-  noX = Math.max(10, Math.min(maxX, noX));
-  noY = Math.max(10, Math.min(maxY, noY));
+  nextX = Math.max(10, Math.min(maxX, nextX));
+  nextY = Math.max(10, Math.min(maxY, nextY));
+
+  // 🚫 Prevent NO button from overlapping YES button
+  const overlap = !(
+    nextX + rect.width < yesRect.left - 8 ||
+    nextX > yesRect.right + 8 ||
+    nextY + rect.height < yesRect.top - 8 ||
+    nextY > yesRect.bottom + 8
+  );
+
+  if (!overlap) {
+    noX = nextX;
+    noY = nextY;
+  } else {
+    // push it away vertically if overlap would happen
+    if (btnCenterY < yesRect.top) {
+      noY = yesRect.top - rect.height - 12;
+    } else {
+      noY = yesRect.bottom + 12;
+    }
+  }
 
   noBtn.style.left = noX + "px";
   noBtn.style.top = noY + "px";
